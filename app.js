@@ -33,7 +33,7 @@ app.get("/students", async (req, res) => {
             "SELECT * FROM students ORDER BY id"
         );
 
-        es.json(result.rows);
+        res.json(result.rows);
 
     } catch (error) {
         res.status(500).json({
@@ -44,51 +44,74 @@ app.get("/students", async (req, res) => {
 });
 
 
-app.get("/students/:id", (req, res) => {
-    const id = Number(req.params.id);
+app.get("/students/:id", async (req, res) => {
+    try{
+        const id = Number(req.params.id);
 
-    const student = students.find((student) => student.id === id);
+        const result = await pool.query(
+            "SELECT * FROM students WHERE id = $1",
+            [id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: "Öğrenci Bulunamadı"
+            });
+        }
+        res.json(result.rows[0]);
 
-    if(!student){
-        return res.status(404).json({
-            message: "Öğrenci Bulunamadı"
-        })
+    } catch(error){
+        res.status(500).json({
+            message: "Bir hata oluştu",
+            error: error.message
+        });
 
     }
-    res.json(student);
+    
 });
 
-app.post("/students",(req, res) => {
-    const name = req.body.name;
-    const age = req.body.age;
+app.post("/students", async (req, res) => {
+    try{
+        const name = req.body.name;
+        const age = req.body.age;
+        const email = req.body.email;
 
-    const newStudent = {
-        id: students.length + 1,
-        name: name,
-        age: age
-    }
-
-    students.push(newStudent);
-    res.status(201).json(newStudent);
-});
-
-app.delete("/students/:id", (req,res ) => {
-    const id = Number(req.params.id);
-
-    const studentIndex = students.findIndex((student) => student.id === id);
-
-
-    if (studentIndex === -1) {
-        return res.status(404).json({
-            message: "Öğrenci Bulunamadı"
+        const result = await pool.query(
+            "INSERT INTO students (name,age,email) VALUES ($1, $2, $3) RETURNING *",
+            [name, age, email]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch(error){
+        res.status(500).json({
+            message: "Öğrenci eklenemedi",
+            error: error.message
         });
     }
+});
 
-    students.splice(studentIndex,1);
+app.delete("/students/:id", async (req,res ) => {
+    try{
+        const id = Number(req.params.id);
 
-    res.json({
-        message: "Öğrenci Silindi"
-    });
+        const result = await pool.query(
+            "DELETE FROM students WHERE id = $1 RETURNING *",
+            [id]
+        );
+        if(result.rows.length === 0){
+            return res.status(404).json({
+                message: "Öğrenci Bulunamadı"
+            });
+        }
+        res.json({
+            message: "Öğrenci Silindi",
+            student: result.rows[0]
+        })
+
+    }catch (error) {
+        res.status(500).json({
+            message: "Öğrenci silinemedi",
+            error: error.message
+        });
+    }
 
 })
 
