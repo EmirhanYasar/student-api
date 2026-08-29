@@ -44,6 +44,12 @@ app.get("/students/:id", async (req, res) => {
     try{
         const id = Number(req.params.id);
 
+        if (isNaN(id) || id <= 0) {
+            return res.status(400).json({
+                message: "Geçerli bir ID girin."
+            });
+        }
+
         const result = await pool.query(
             "SELECT * FROM students WHERE id = $1",
             [id]
@@ -95,6 +101,13 @@ app.post("/students", async (req, res) => {
         );
         res.status(201).json(result.rows[0]);
     } catch(error){
+
+        if(error.code === "23505"){
+            return res.status(409).json({
+                message: "Bu Email Zaten Kayıtlı."
+            });
+        }
+        
         res.status(500).json({
             message: "Öğrenci eklenemedi",
             error: error.message
@@ -105,6 +118,12 @@ app.post("/students", async (req, res) => {
 app.delete("/students/:id", async (req,res ) => {
     try{
         const id = Number(req.params.id);
+
+        if (isNaN(id) || id <= 0) {
+            return res.status(400).json({
+                message: "Geçerli bir ID girin."
+            });
+        }
 
         const result = await pool.query(
             "DELETE FROM students WHERE id = $1 RETURNING *",
@@ -181,6 +200,12 @@ app.patch("/students/:id", async (req, res) => {
         res.json(result.rows[0]);
  
     } catch (error) {
+        if(error.code === "23505"){
+            return res.status(409).json({
+                message: "Bu Email Zaten Kayıtlı."
+            });
+        }
+
         res.status(500).json({
             message: "Öğrenci güncellenemedi",
             error: error.message
