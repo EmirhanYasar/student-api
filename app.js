@@ -4,8 +4,13 @@ const app = express();
 
 app.get("/", (req,res) =>{
     res.send("Server Çalışıyor.");
-})
+});
+
+appçget("/student", (req,res) => {
+    res.send("Öğrenci Listesi");
+});
+
 
 app.listen(3000, () => {
     console.log("Server 3000 Portunda Çalışıyor...");
-})
+});
