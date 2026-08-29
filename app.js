@@ -71,6 +71,24 @@ app.post("/students", async (req, res) => {
         const age = req.body.age;
         const email = req.body.email;
 
+        if(!name || name.trim() ===""){
+            return res.status(400).json({
+                message: "İsim Boş Bırakılamaz."
+            });
+        }
+
+        if(!age || isNaN(age) || age <= 0){
+            return res.status(400).json({
+                message: "Geçerli Bir Yaş Girin."
+            });
+        }
+
+        if(!email || !email.includes("@")){
+            return res.status(400).json({
+                message: "Geçerli Bir Email Girin."
+            });
+        }
+
         const result = await pool.query(
             "INSERT INTO students (name,age,email) VALUES ($1, $2, $3) RETURNING *",
             [name, age, email]
@@ -118,6 +136,31 @@ app.patch("/students/:id", async (req, res) => {
         const name = req.body.name;
         const age = req.body.age;
         const email = req.body.email;
+
+         if (isNaN(id) || id <= 0) {
+            return res.status(400).json({
+                message: "Geçerli bir ID girin."
+            });
+        }
+
+        if (name !== undefined && name.trim() === "") {
+            return res.status(400).json({
+                message: "İsim boş bırakılamaz."
+            });
+        }
+
+        if (age !== undefined && (isNaN(age) || age <= 0)) {
+            return res.status(400).json({
+                message: "Geçerli bir yaş girin."
+            });
+        }
+
+        if (email !== undefined && !email.includes("@")) {
+            return res.status(400).json({
+                message: "Geçerli bir email girin."
+            });
+        }
+
 
         const result = await pool.query(
             `UPDATE students
