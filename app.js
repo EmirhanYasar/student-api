@@ -67,6 +67,30 @@ app.delete("/students/:id", (req,res ) => {
 
 })
 
+app.patch("/students/:id",(req, res) => {
+    const id = Number(req.params.id);
+
+    const student = students.find((student) => student.id === id);
+
+    if (!student) {
+        return res.status(404).json({
+            message: "Öğrenci Bulunamadı"
+        });
+    }
+    if (req.body.name !== undefined) {
+        student.name = req.body.name;
+    }
+
+    if (req.body.age !== undefined) {
+        student.age = req.body.age;
+    }
+
+    res.json(student);
+
+
+
+})
+
 
 
 
