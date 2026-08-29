@@ -31,7 +31,7 @@ app.get("/students/:id", (req, res) => {
 
     }
     res.json(student);
-})
+});
 
 app.post("/students",(req, res) => {
     const name = req.body.name;
@@ -45,7 +45,29 @@ app.post("/students",(req, res) => {
 
     students.push(newStudent);
     res.status(201).json(newStudent);
+});
+
+app.delete("/students/:id", (req,res ) => {
+    const id = Number(req.params.id);
+
+    const studentIndex = students.findIndex((student) => student.id === id);
+
+
+    if (studentIndex === -1) {
+        return res.status(404).json({
+            message: "Öğrenci Bulunamadı"
+        });
+    }
+
+    students.splice(studentIndex,1);
+
+    res.json({
+        message: "Öğrenci Silindi"
+    });
+
 })
+
+
 
 
 app.listen(3000, () => {
