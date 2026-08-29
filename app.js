@@ -1,6 +1,9 @@
 const express = require("express");
 const pool = require("./db");
 
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 const app = express();
 
 app.use(express.json());
@@ -107,7 +110,7 @@ app.post("/students", async (req, res) => {
                 message: "Bu Email Zaten Kayıtlı."
             });
         }
-        
+
         res.status(500).json({
             message: "Öğrenci eklenemedi",
             error: error.message
@@ -212,6 +215,54 @@ app.patch("/students/:id", async (req, res) => {
         });
      }
 });
+
+
+app.post("/register", async(req, res) => {
+    try{
+        const name = req.body.name;
+        const email = req.body.email;
+        const password = req.body.password;
+
+        if(!name || !email || !password){
+            return res.status(400).json({
+                message: "Tüm alanları doldurun."
+            });
+        }
+
+        if(!email.includes("@")){
+            return res.status(400).json({
+                message: "Geçerli bir email girin."
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password,10);
+
+        const result = await pool.query(
+            `INSERT INTO users (name, email, password)
+            VALUES ($1, $2, $3)
+            RETURNING id, name, email`,
+            [name, email, hashedPassword]
+        );
+
+        res.status(201).json({
+            message: "Kullanıcı Başarıyla Oluşturuldu.",
+            user: result.rows[0]
+        });
+        } catch(error){
+
+            if(error.code === "23505"){
+                return res.status(409).json({
+                    message: "Bu Email Zaten Kayıtlı."
+                })
+            }
+            res.status(500).json({
+                message: "Kullanıcı Oluşturulamadı.",
+                error: error.message
+            });
+        }
+ 
+}); 
+
 
 
 app.listen(3000, () => {
