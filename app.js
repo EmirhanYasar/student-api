@@ -1,4 +1,5 @@
 const express = require("express");
+const pool = require("./db");
 
 const app = express();
 
@@ -9,13 +10,37 @@ const students = [
         { id: 2, name: "Mehmet", age: 19 }
     ];
 
-app.get("/", (req, res) =>{
-    res.send("Server Çalışıyor.");
+app.get("/db-test", async (req, res) =>{
+    try{
+        const result = await pool.query("SELECT NOW()");
+        res.json({
+            message: "Veritabanı bağlantısı başarılı",
+            time: result.rows[0].now
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Veritabanı bağlantı hatası",
+            error: error.message
+        });
+    }
 });
 
 
-app.get("/students", (req, res) => {
-    res.json(students);
+
+app.get("/students", async (req, res) => {
+    try{
+        const result = await pool.query(
+            "SELECT * FROM students ORDER BY id"
+        );
+
+        es.json(result.rows);
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Öğrenciler alınamadı",
+            error: error.message
+        });
+    }
 });
 
 
