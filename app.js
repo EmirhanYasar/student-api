@@ -5,10 +5,6 @@ const app = express();
 
 app.use(express.json());
 
-const students = [
-        { id: 1, name: "Ali", age: 20 },
-        { id: 2, name: "Mehmet", age: 19 }
-    ];
 
 app.get("/db-test", async (req, res) =>{
     try{
@@ -115,31 +111,39 @@ app.delete("/students/:id", async (req,res ) => {
 
 })
 
-app.patch("/students/:id",(req, res) => {
-    const id = Number(req.params.id);
+app.patch("/students/:id", async (req, res) => {
+    try{
+        const id = Number(req.params.id);
 
-    const student = students.find((student) => student.id === id);
+        const name = req.body.name;
+        const age = req.body.age;
+        const email = req.body.email;
 
-    if (!student) {
-        return res.status(404).json({
-            message: "Öğrenci Bulunamadı"
+        const result = await pool.query(
+            `UPDATE students
+             SET name = COALESCE($1, name),
+                 age = COALESCE($2, age),
+                 email = COALESCE($3, email)
+             WHERE id = $4
+             RETURNING *`,
+            [name, age, email, id]
+        );
+
+        if(result.rows.length === 0){
+            return res.status(404).json({
+                message: "Öğrenci Bulunamadı"
+            });
+
+        }
+        res.json(result.rows[0]);
+ 
+    } catch (error) {
+        res.status(500).json({
+            message: "Öğrenci güncellenemedi",
+            error: error.message
         });
-    }
-    if (req.body.name !== undefined) {
-        student.name = req.body.name;
-    }
-
-    if (req.body.age !== undefined) {
-        student.age = req.body.age;
-    }
-
-    res.json(student);
-
-
-
-})
-
-
+     }
+});
 
 
 app.listen(3000, () => {
