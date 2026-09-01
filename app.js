@@ -74,7 +74,7 @@ app.get("/students/:id", async (req, res) => {
     
 });
 
-app.post("/students", async (req, res) => {
+app.post("/students", authenticateToken, async (req, res) => {
     try{
         const name = req.body.name;
         const age = req.body.age;
@@ -118,7 +118,7 @@ app.post("/students", async (req, res) => {
     }
 });
 
-app.delete("/students/:id", async (req,res ) => {
+app.delete("/students/:id", authenticateToken , async (req,res ) => {
     try{
         const id = Number(req.params.id);
 
@@ -127,6 +127,8 @@ app.delete("/students/:id", async (req,res ) => {
                 message: "Geçerli bir ID girin."
             });
         }
+
+        console.log("İşlemi Yapan Kullanıcı:", req.user.email);
 
         const result = await pool.query(
             "DELETE FROM students WHERE id = $1 RETURNING *",
@@ -151,7 +153,7 @@ app.delete("/students/:id", async (req,res ) => {
 
 })
 
-app.patch("/students/:id", async (req, res) => {
+app.patch("/students/:id", authenticateToken,  async (req, res) => {
     try{
         const id = Number(req.params.id);
 
@@ -217,7 +219,7 @@ app.patch("/students/:id", async (req, res) => {
 });
 
 
-app.post("/register", async(req, res) => {
+app.post("/register",  async(req, res) => {
     try{
         const name = req.body.name;
         const email = req.body.email;
@@ -326,7 +328,7 @@ app.post("/login", async (req, res) => {
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers.authorization;
-    
+
     const token = authHeader && authHeader.split(" ")[1];
     
     if(!token) {
@@ -345,7 +347,7 @@ function authenticateToken(req, res, next) {
         next();
 
     } catch (error) {
-        res.status(401).json({
+        return res.status(401).json({
             message: "Geçersiz veya Süresi Dolmuş Token.",
             error: error.message
         });
