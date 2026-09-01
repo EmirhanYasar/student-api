@@ -47,6 +47,12 @@ app.get("/students/search", async (req, res) => {
     try {
         const name = req.query.name;
 
+        if (!name || name.trim() === "") {
+            return res.status(400).json({
+                message: "Aranacak öğrenci adını girin."
+            });
+        }
+
         const result = await pool.query(
             "SELECT * FROM students WHERE name ILIKE $1",
             [`%${name}%`]
