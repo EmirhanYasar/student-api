@@ -43,6 +43,25 @@ app.get("/students", async (req, res) => {
 });
 
 
+app.get("/students/search", async (req, res) => {
+    try {
+        const name = req.query.name;
+
+        const result = await pool.query(
+            "SELECT * FROM students WHERE name ILIKE $1",
+            [`%${name}%`]
+        );
+
+        res.json(result.rows);
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Öğrenci aranamadı.",
+            error: error.message
+        });
+    }
+});
+
 app.get("/students/:id", async (req, res) => {
     try{
         const id = Number(req.params.id);
